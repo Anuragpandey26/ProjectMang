@@ -1,8 +1,7 @@
 import express from "express";
-
 import { z } from "zod";
 import { validateRequest } from "zod-express-middleware";
-import { taskSchema } from "../libs/validate-schema.js";
+import { taskSchema, timeLogSchema } from "../libs/validate-schema.js";
 import {
   achievedTask,
   addComment,
@@ -19,6 +18,7 @@ import {
   updateTaskStatus,
   updateTaskTitle,
   watchTask,
+  logTaskTime,
 } from "../controllers/task.js";
 import authMiddleware from "../middleware/auth-middleware.js";
 
@@ -72,6 +72,16 @@ router.post(
     params: z.object({ taskId: z.string() }),
   }),
   achievedTask
+);
+
+router.post(
+  "/:taskId/log-time",
+  authMiddleware,
+  validateRequest({
+    params: z.object({ taskId: z.string() }),
+    body: timeLogSchema,
+  }),
+  logTaskTime
 );
 
 router.put(
@@ -164,4 +174,5 @@ router.get(
   }),
   getCommentsByTaskId
 );
+
 export default router;

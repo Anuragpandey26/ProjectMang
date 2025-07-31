@@ -66,7 +66,8 @@ const getTaskById = async (req, res) => {
 
     const task = await Task.findById(taskId)
       .populate("assignees", "name profilePicture")
-      .populate("watchers", "name profilePicture");
+      .populate("watchers", "name profilePicture")
+      .populate("timeEntries.user", "name profilePicture");
 
     if (!task) {
       return res.status(404).json({
@@ -124,7 +125,6 @@ const updateTaskTitle = async (req, res) => {
     task.title = title;
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "updated_task", "Task", taskId, {
       description: `updated task title from ${oldTitle} to ${title}`,
     });
@@ -137,6 +137,7 @@ const updateTaskTitle = async (req, res) => {
     });
   }
 };
+
 const updateTaskDescription = async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -177,7 +178,6 @@ const updateTaskDescription = async (req, res) => {
     task.description = description;
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "updated_task", "Task", taskId, {
       description: `updated task description from ${oldDescription} to ${newDescription}`,
     });
@@ -227,7 +227,6 @@ const updateTaskStatus = async (req, res) => {
     task.status = status;
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "updated_task", "Task", taskId, {
       description: `updated task status from ${oldStatus} to ${status}`,
     });
@@ -240,6 +239,7 @@ const updateTaskStatus = async (req, res) => {
     });
   }
 };
+
 const updateTaskAssignees = async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -276,7 +276,6 @@ const updateTaskAssignees = async (req, res) => {
     task.assignees = assignees;
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "updated_task", "Task", taskId, {
       description: `updated task assignees from ${oldAssignees.length} to ${assignees.length}`,
     });
@@ -289,6 +288,7 @@ const updateTaskAssignees = async (req, res) => {
     });
   }
 };
+
 const updateTaskPriority = async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -325,7 +325,6 @@ const updateTaskPriority = async (req, res) => {
     task.priority = priority;
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "updated_task", "Task", taskId, {
       description: `updated task priority from ${oldPriority} to ${priority}`,
     });
@@ -378,7 +377,6 @@ const addSubTask = async (req, res) => {
     task.subtasks.push(newSubTask);
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "created_subtask", "Task", taskId, {
       description: `created subtask ${title}`,
     });
@@ -419,7 +417,6 @@ const updateSubTask = async (req, res) => {
     subTask.completed = completed;
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "updated_subtask", "Task", taskId, {
       description: `updated subtask ${subTask.title}`,
     });
@@ -507,7 +504,6 @@ const addComment = async (req, res) => {
     task.comments.push(newComment._id);
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "added_comment", "Task", taskId, {
       description: `added comment ${
         text.substring(0, 50) + (text.length > 50 ? "..." : "")
@@ -565,7 +561,6 @@ const watchTask = async (req, res) => {
 
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "updated_task", "Task", taskId, {
       description: `${
         isWatching ? "stopped watching" : "started watching"
@@ -615,7 +610,6 @@ const achievedTask = async (req, res) => {
     task.isArchived = !isAchieved;
     await task.save();
 
-    // record activity
     await recordActivity(req.user._id, "updated_task", "Task", taskId, {
       description: `${isAchieved ? "unachieved" : "achieved"} task ${
         task.title
@@ -647,6 +641,61 @@ const getMyTasks = async (req, res) => {
   }
 };
 
+const logTaskTime = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { hours, description } = req.body;
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
+
+    const project = await Project.findById(task.project);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    const isMember = project.members.some(
+      (member) => member.user.toString() === req.user._id.toString()
+    );
+
+    if (!isMember) {
+      return res.status(403).json({
+        message: "You are not a member of this project",
+      });
+    }
+
+    const newTimeEntry = {
+      user: req.user._id,
+      hours,
+      description,
+      loggedAt: new Date(),
+    };
+
+    task.timeEntries.push(newTimeEntry);
+    task.actualHours = (task.actualHours || 0) + hours;
+    await task.save();
+
+    await recordActivity(req.user._id, "logged_time", "Task", taskId, {
+      description: `logged ${hours} hours on task ${task.title}`,
+    });
+
+    res.status(201).json(task);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
 export {
   createTask,
   getTaskById,
@@ -663,4 +712,5 @@ export {
   watchTask,
   achievedTask,
   getMyTasks,
+  logTaskTime,
 };

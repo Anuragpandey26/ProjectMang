@@ -72,6 +72,11 @@ const taskSchema = z.object({
   assignees: z.array(z.string()).min(1, "At least one assignee is required"),
 });
 
+const timeLogSchema = z.object({
+  hours: z.number().min(0, "Hours must be non-negative"),
+  description: z.string().optional(),
+});
+
 export {
   registerSchema,
   loginSchema,
@@ -83,4 +88,5 @@ export {
   taskSchema,
   inviteMemberSchema,
   tokenSchema,
+  timeLogSchema,
 };

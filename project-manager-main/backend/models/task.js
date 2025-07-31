@@ -53,6 +53,14 @@ const taskSchema = new Schema(
         uploadedAt: { type: Date, default: Date.now },
       },
     ],
+    timeEntries: [
+      {
+        user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        hours: { type: Number, required: true, min: 0 },
+        description: { type: String, trim: true },
+        loggedAt: { type: Date, default: Date.now },
+      },
+    ],
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     isArchived: { type: Boolean, default: false },
   },

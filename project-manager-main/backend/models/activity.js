@@ -27,12 +27,14 @@ const activityLogSchema = new Schema(
         "joined_workspace",
         "transferred_workspace_ownership",
         "added_attachment",
+        "logged_time",
+        "sent_message",
       ],
     },
     resourceType: {
       type: String,
       required: true,
-      enum: ["Task", "Project", "Workspace", "Comment", "User"],
+      enum: ["Task", "Project", "Workspace", "Comment", "User", "Chat"],
     },
     resourceId: {
       type: Schema.Types.ObjectId,
