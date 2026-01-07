@@ -6,7 +6,7 @@ import {
     registerSchema,
     resetPasswordSchema,
     verifyEmailSchema,
-} from "../../dto/auth.dto.js";
+} from "./validators/auth.validator.js";
 import {
     loginUser,
     registerUser,

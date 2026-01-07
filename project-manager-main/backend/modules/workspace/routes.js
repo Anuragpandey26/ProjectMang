@@ -13,8 +13,8 @@ import {
 import {
     inviteMemberSchema,
     workspaceSchema,
-} from "../../dto/workspace.dto.js";
-import { tokenSchema } from "../../dto/common.dto.js";
+    tokenSchema,
+} from "./validators/workspace.validator.js";
 import authMiddleware from "../../middleware/auth-middleware.js";
 import { z } from "zod";
 

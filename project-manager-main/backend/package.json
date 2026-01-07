@@ -6,13 +6,15 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "seed": "node seeders/index.js",
+    "seed:clear": "node seeders/index.js --clear"
   },
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "@arcjet/inspect": "^1.0.0-beta.7",
     "@arcjet/node": "^1.0.0-beta.7",
+    "@faker-js/faker": "^10.2.0",
     "@sendgrid/mail": "^8.1.5",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",

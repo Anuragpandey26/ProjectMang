@@ -2,7 +2,7 @@ import express from "express";
 import { validateRequest } from "zod-express-middleware";
 import { sendMessage, getMessages } from "./controllers/chat.js";
 import authMiddleware from "../../middleware/auth-middleware.js";
-import { sendMessageSchema, getMessagesSchema } from "../../dto/chat.dto.js";
+import { sendMessageSchema, getMessagesSchema } from "./validators/chat.validator.js";
 
 const router = express.Router();
 

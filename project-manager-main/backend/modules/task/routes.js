@@ -1,7 +1,7 @@
 import express from "express";
 import { z } from "zod";
 import { validateRequest } from "zod-express-middleware";
-import { taskSchema, timeLogSchema } from "../../dto/task.dto.js";
+import { taskSchema, timeLogSchema } from "./validators/task.validator.js";
 import {
     achievedTask,
     addComment,

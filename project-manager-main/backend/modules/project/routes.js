@@ -1,7 +1,7 @@
 import express from "express";
 import authMiddleware from "../../middleware/auth-middleware.js";
 import { validateRequest } from "zod-express-middleware";
-import { projectSchema } from "../../dto/project.dto.js";
+import { projectSchema } from "./validators/project.validator.js";
 import { z } from "zod";
 import {
     createProject,

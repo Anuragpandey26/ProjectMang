@@ -10,3 +10,7 @@ export const workspaceSchema = z.object({
   description: z.string().optional(),
   color: z.string().min(1, "Color is required"),
 });
+
+export const tokenSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+});
