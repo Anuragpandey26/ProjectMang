@@ -54,10 +54,10 @@ export class EmailTemplates {
 <body>
     <div class="container">
         <div class="header">
-            <h1>TaskHub</h1>
+            <h1>Catalyst</h1>
         </div>
         <div class="content">
-            <h2>Welcome to TaskHub, ${userName}!</h2>
+            <h2>Welcome to Catalyst, ${userName}!</h2>
             <p>Thank you for signing up. Please verify your email address to get started.</p>
             <p>Click the button below to verify your email:</p>
             <div style="text-align: center;">
@@ -69,7 +69,7 @@ export class EmailTemplates {
             <p>If you didn't create an account, please ignore this email.</p>
         </div>
         <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} TaskHub. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Catalyst. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -138,7 +138,7 @@ export class EmailTemplates {
 <body>
     <div class="container">
         <div class="header">
-            <h1>TaskHub</h1>
+            <h1>Catalyst</h1>
         </div>
         <div class="content">
             <h2>Reset Your Password</h2>
@@ -155,7 +155,7 @@ export class EmailTemplates {
             <p>If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
         </div>
         <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} TaskHub. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Catalyst. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -224,7 +224,7 @@ export class EmailTemplates {
 <body>
     <div class="container">
         <div class="header">
-            <h1>TaskHub</h1>
+            <h1>Catalyst</h1>
         </div>
         <div class="content">
             <h2>You've Been Invited!</h2>
@@ -242,7 +242,7 @@ export class EmailTemplates {
             <p>If you don't want to join this workspace, you can safely ignore this email.</p>
         </div>
         <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} TaskHub. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Catalyst. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -311,7 +311,7 @@ export class EmailTemplates {
 <body>
     <div class="container">
         <div class="header">
-            <h1>TaskHub</h1>
+            <h1>Catalyst</h1>
         </div>
         <div class="content">
             <h2>New Task Assigned</h2>
@@ -325,7 +325,7 @@ export class EmailTemplates {
             </div>
         </div>
         <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} TaskHub. All rights reserved.</p>
+            <p>&copy; ${new Date().getFullYear()} Catalyst. All rights reserved.</p>
         </div>
     </div>
 </body>

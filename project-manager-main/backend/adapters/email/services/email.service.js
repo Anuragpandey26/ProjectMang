@@ -10,7 +10,7 @@ class EmailService {
    * @returns {Promise<boolean>}
    */
   async sendVerificationEmail(to, verificationLink, userName) {
-    const subject = "Verify Your Email - TaskHub";
+    const subject = "Verify Your Email - Catalyst";
     const html = EmailTemplates.verificationEmail(verificationLink, userName);
     return await sendGridAdapter.sendEmail(to, subject, html);
   }
@@ -23,7 +23,7 @@ class EmailService {
    * @returns {Promise<boolean>}
    */
   async sendPasswordResetEmail(to, resetLink, userName) {
-    const subject = "Reset Your Password - TaskHub";
+    const subject = "Reset Your Password - Catalyst";
     const html = EmailTemplates.resetPasswordEmail(resetLink, userName);
     return await sendGridAdapter.sendEmail(to, subject, html);
   }
@@ -38,7 +38,7 @@ class EmailService {
    * @returns {Promise<boolean>}
    */
   async sendWorkspaceInviteEmail(to, inviteLink, workspaceName, inviterName, role) {
-    const subject = `You've been invited to join ${workspaceName} - TaskHub`;
+    const subject = `You've been invited to join ${workspaceName} - Catalyst`;
     const html = EmailTemplates.workspaceInviteEmail(
       inviteLink,
       workspaceName,
@@ -59,7 +59,7 @@ class EmailService {
    * @returns {Promise<boolean>}
    */
   async sendTaskAssignedEmail(to, taskTitle, taskDescription, assignedBy, projectName, taskLink) {
-    const subject = `New Task Assigned: ${taskTitle} - TaskHub`;
+    const subject = `New Task Assigned: ${taskTitle} - Catalyst`;
     const html = EmailTemplates.taskAssignedEmail(
       taskTitle,
       taskDescription,

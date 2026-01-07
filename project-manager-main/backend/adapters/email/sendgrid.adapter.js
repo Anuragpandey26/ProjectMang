@@ -9,7 +9,7 @@ class SendGridAdapter {
             console.warn("SEND_GRID_API is not set");
         }
         sgMail.setApiKey(process.env.SEND_GRID_API);
-        this.fromEmail = process.env.FROM_EMAIL || "noreply@taskhub.com";
+        this.fromEmail = process.env.FROM_EMAIL || "noreply@catalyst.app";
     }
 
     /**
@@ -22,7 +22,7 @@ class SendGridAdapter {
     async sendEmail(to, subject, html) {
         const msg = {
             to,
-            from: `TaskHub <${this.fromEmail}>`,
+            from: `Catalyst <${this.fromEmail}>`,
             subject,
             html,
         };
