@@ -1,32 +1,34 @@
-import jwt from "jsonwebtoken";
-import User from "../models/user.js";
+import tokenService from "../services/token.service.js";
+import User from "../modules/auth/models/user.js";
+import { AppError } from "../error-handlers/global.error-handler.js";
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(" ")[1]; //Bearer dhghjhdkjfg
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
-      return res.status(401).json({
-        message: "Unauthorized",
-      });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new AppError("No token provided", 401);
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
+      throw new AppError("No token provided", 401);
+    }
+
+    // Verify access token using token service
+    const decoded = tokenService.verifyAccessToken(token);
+    
     const user = await User.findById(decoded.userId);
 
     if (!user) {
-      return res.status(401).json({
-        message: "Unauthorized",
-      });
+      throw new AppError("User not found", 401);
     }
 
     req.user = user;
     next();
   } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
