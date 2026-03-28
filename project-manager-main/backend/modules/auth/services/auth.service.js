@@ -3,19 +3,11 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Verification from "../models/verification.js";
 import emailService from "../../../adapters/email/services/email.service.js";
-import aj from "../../../adapters/security/arcjet.adapter.js";
 import tokenService from "../../../services/token.service.js";
 import { AppError } from "../../../error-handlers/global.error-handler.js";
 
 class AuthService {
   async register(email, name, password, req) {
-    const decision = await aj.protect(req, { email });
-    console.log("Arcjet decision", decision.isDenied());
-
-    if (decision.isDenied()) {
-      throw new AppError("Invalid email address", 403);
-    }
-
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {

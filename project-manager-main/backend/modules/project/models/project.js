@@ -36,6 +36,17 @@ const projectSchema = new Schema(
       },
     ],
     tags: [{ type: String }],
+    attachments: [
+      {
+        fileName: { type: String, required: true },
+        fileUrl: { type: String, required: true },
+        publicId: { type: String, required: true },
+        fileType: { type: String },
+        fileSize: { type: Number },
+        uploadedBy: { type: Schema.Types.ObjectId, ref: "User" },
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     isArchived: { type: Boolean, default: false },
   },

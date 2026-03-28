@@ -47,6 +47,7 @@ const taskSchema = new Schema(
       {
         fileName: { type: String, required: true },
         fileUrl: { type: String, required: true },
+        publicId: { type: String, required: true }, // For Cloudinary/S3 deletions
         fileType: { type: String },
         fileSize: { type: Number },
         uploadedBy: { type: Schema.Types.ObjectId, ref: "User" },

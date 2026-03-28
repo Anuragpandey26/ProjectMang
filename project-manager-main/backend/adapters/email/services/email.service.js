@@ -1,41 +1,51 @@
-import sendGridAdapter from "../sendgrid.adapter.js";
+import resendAdapter from "../resend.adapter.js";
 import { EmailTemplates } from "../templates/email.templates.js";
+import queueService from "../../../services/queue.service.js";
 
+/**
+ * EmailService - Sends emails via BullMQ queue or directly.
+ *
+ * Strategy:
+ * - If BullMQ is enabled → queues the email (non-blocking, with retries).
+ * - If BullMQ is disabled → sends synchronously via Resend (still works).
+ *
+ * The `immediate` option always sends synchronously regardless of queue state.
+ */
 class EmailService {
   /**
-   * Send verification email
-   * @param {string} to - Recipient email
-   * @param {string} verificationLink - Verification link
-   * @param {string} userName - User's name
-   * @returns {Promise<boolean>}
+   * @private
+   * Send email either via queue or directly based on availability.
    */
-  async sendVerificationEmail(to, verificationLink, userName) {
+  async _send(jobName, to, subject, html, options = {}) {
+    // Force synchronous send or BullMQ not available → send directly
+    if (options.immediate || !queueService.isEnabled()) {
+      return await resendAdapter.sendEmail(to, subject, html);
+    }
+
+    // Queue the email for async processing
+    return await queueService.addJob("email", jobName, { to, subject, html });
+  }
+
+  /**
+   * Send verification email
+   */
+  async sendVerificationEmail(to, verificationLink, userName, options = {}) {
     const subject = "Verify Your Email - Catalyst";
     const html = EmailTemplates.verificationEmail(verificationLink, userName);
-    return await sendGridAdapter.sendEmail(to, subject, html);
+    return await this._send("send-verification-email", to, subject, html, options);
   }
 
   /**
    * Send password reset email
-   * @param {string} to - Recipient email
-   * @param {string} resetLink - Password reset link
-   * @param {string} userName - User's name
-   * @returns {Promise<boolean>}
    */
-  async sendPasswordResetEmail(to, resetLink, userName) {
+  async sendPasswordResetEmail(to, resetLink, userName, options = {}) {
     const subject = "Reset Your Password - Catalyst";
     const html = EmailTemplates.resetPasswordEmail(resetLink, userName);
-    return await sendGridAdapter.sendEmail(to, subject, html);
+    return await this._send("send-password-reset-email", to, subject, html, options);
   }
 
   /**
    * Send workspace invitation email
-   * @param {string} to - Recipient email
-   * @param {string} inviteLink - Invitation link
-   * @param {string} workspaceName - Workspace name
-   * @param {string} inviterName - Name of person who sent invite
-   * @param {string} role - Role in workspace
-   * @returns {Promise<boolean>}
    */
   async sendWorkspaceInviteEmail(to, inviteLink, workspaceName, inviterName, role) {
     const subject = `You've been invited to join ${workspaceName} - Catalyst`;
@@ -45,18 +55,11 @@ class EmailService {
       inviterName,
       role
     );
-    return await sendGridAdapter.sendEmail(to, subject, html);
+    return await this._send("send-invite-email", to, subject, html);
   }
 
   /**
    * Send task assignment notification email
-   * @param {string} to - Recipient email
-   * @param {string} taskTitle - Task title
-   * @param {string} taskDescription - Task description
-   * @param {string} assignedBy - Name of person who assigned
-   * @param {string} projectName - Project name
-   * @param {string} taskLink - Link to task
-   * @returns {Promise<boolean>}
    */
   async sendTaskAssignedEmail(to, taskTitle, taskDescription, assignedBy, projectName, taskLink) {
     const subject = `New Task Assigned: ${taskTitle} - Catalyst`;
@@ -67,18 +70,14 @@ class EmailService {
       projectName,
       taskLink
     );
-    return await sendGridAdapter.sendEmail(to, subject, html);
+    return await this._send("send-task-assigned-email", to, subject, html);
   }
 
   /**
-   * Send generic email (for custom use cases)
-   * @param {string} to - Recipient email
-   * @param {string} subject - Email subject
-   * @param {string} html - HTML content
-   * @returns {Promise<boolean>}
+   * Send generic email
    */
-  async sendCustomEmail(to, subject, html) {
-    return await sendGridAdapter.sendEmail(to, subject, html);
+  async sendCustomEmail(to, subject, html, options = {}) {
+    return await this._send("send-email", to, subject, html, options);
   }
 }
 

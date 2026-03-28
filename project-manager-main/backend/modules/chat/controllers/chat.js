@@ -1,96 +1,21 @@
-import Chat from "../models/chat.js";
-import Project from "../../project/models/project.js";
-import Workspace from "../../workspace/models/workspace.js";
-import activityLogService from "../../../services/activity-log.service.js";
+import chatService from "../services/chat.service.js";
+import asyncHandler from "../../../middleware/async-handler.js";
 
-const sendMessage = async (req, res) => {
-  try {
-    const { resourceType, resourceId, message } = req.body;
-    let resource;
-    if (resourceType === "Project") {
-      resource = await Project.findById(resourceId);
-      if (!resource) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-      const isMember = resource.members.some(
-        (member) => member.user.toString() === req.user._id.toString()
-      );
-      if (!isMember) {
-        return res.status(403).json({ message: "You are not a member of this project" });
-      }
-    } else if (resourceType === "Workspace") {
-      resource = await Workspace.findById(resourceId);
-      if (!resource) {
-        return res.status(404).json({ message: "Workspace not found" });
-      }
-      const isMember = resource.members.some(
-        (member) => member.user.toString() === req.user._id.toString()
-      );
-      if (!isMember) {
-        return res.status(403).json({ message: "You are not a member of this workspace" });
-      }
-    } else {
-      return res.status(400).json({ message: "Invalid resource type" });
-    }
+/**
+ * Handle sending a chat message
+ */
+const sendMessage = asyncHandler(async (req, res) => {
+  const newMessage = await chatService.sendMessage(req.user._id, req.body);
+  res.status(201).json(newMessage);
+});
 
-    const newMessage = await Chat.create({
-      resourceType,
-      resourceId,
-      sender: req.user._id,
-      message,
-    });
+/**
+ * Handle fetching messages for a specific resource
+ */
+const getMessages = asyncHandler(async (req, res) => {
+  const { resourceType, resourceId } = req.params;
+  const messages = await chatService.getMessages(req.user._id, resourceType, resourceId);
+  res.status(200).json(messages);
+});
 
-    await activityLogService.recordActivity(req.user._id, "sent_message", resourceType, resourceId, {
-      description: `sent a message: ${message.substring(0, 50) + (message.length > 50 ? "..." : "")}`,
-    });
-
-    res.status(201).json(newMessage);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-const getMessages = async (req, res) => {
-  try {
-    const { resourceType, resourceId } = req.params;
-
-    let resource;
-    if (resourceType === "Project") {
-      resource = await Project.findById(resourceId);
-      if (!resource) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-      const isMember = resource.members.some(
-        (member) => member.user.toString() === req.user._id.toString()
-      );
-      if (!isMember) {
-        return res.status(403).json({ message: "You are not a member of this project" });
-      }
-    } else if (resourceType === "Workspace") {
-      resource = await Workspace.findById(resourceId);
-      if (!resource) {
-        return res.status(404).json({ message: "Workspace not found" });
-      }
-      const isMember = resource.members.some(
-        (member) => member.user.toString() === req.user._id.toString()
-      );
-      if (!isMember) {
-        return res.status(403).json({ message: "You are not a member of this workspace" });
-      }
-    } else {
-      return res.status(400).json({ message: "Invalid resource type" });
-    }
-
-    const messages = await Chat.find({ resourceType, resourceId })
-      .populate("sender", "name profilePicture")
-      .sort({ createdAt: 1 });
-
-    res.status(200).json(messages);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-export { sendMessage, getMessages };
+export { sendMessage, getMessages };

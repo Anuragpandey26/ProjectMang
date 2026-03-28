@@ -1,11 +1,12 @@
 import { Server } from "socket.io";
-import jwt from "jsonwebtoken";
 import User from "../modules/auth/models/user.js";
-import activityLogService from "../services/activity-log.service.js";
-import Chat from "../modules/chat/models/chat.js";
+import chatService from "../modules/chat/services/chat.service.js";
+import tokenService from "./token.service.js";
+
+let io;
 
 const initializeSocket = (server) => {
-    const io = new Server(server, {
+    io = new Server(server, {
         cors: {
             origin: "*",
             methods: ["GET", "POST"],
@@ -18,8 +19,9 @@ const initializeSocket = (server) => {
             if (!token) {
                 return next(new Error("Authentication error"));
             }
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const user = await User.findById(decoded.userId);
+
+            const decoded = tokenService.verifyAccessToken(token);
+            const user = await User.findById(decoded.sub);
             if (!user) {
                 return next(new Error("Authentication error"));
             }
@@ -32,6 +34,9 @@ const initializeSocket = (server) => {
 
     io.on("connection", (socket) => {
         console.log(`User connected: ${socket.user._id}`);
+        
+        // Join a private room for personal notifications
+        socket.join(`user:${socket.user._id}`);
 
         socket.on("joinRoom", ({ resourceType, resourceId }) => {
             const room = `${resourceType}:${resourceId}`;
@@ -41,32 +46,16 @@ const initializeSocket = (server) => {
 
         socket.on("sendMessage", async ({ resourceType, resourceId, message }) => {
             try {
-                const newMessage = await Chat.create({
+                const newMessage = await chatService.sendMessage(socket.user._id, {
                     resourceType,
                     resourceId,
-                    sender: socket.user._id,
                     message,
                 });
 
-                const populatedMessage = await Chat.findById(newMessage._id).populate(
-                    "sender",
-                    "name profilePicture"
-                );
-
-                await activityLogService.recordActivity(
-                    socket.user._id,
-                    "sent_message",
-                    resourceType,
-                    resourceId,
-                    {
-                        description: `sent a message: ${message.substring(0, 50) + (message.length > 50 ? "..." : "")
-                            }`,
-                    }
-                );
-
-                io.to(`${resourceType}:${resourceId}`).emit("message", populatedMessage);
+                io.to(`${resourceType}:${resourceId}`).emit("message", newMessage);
             } catch (error) {
-                console.log(error);
+                console.error("Socket sendMessage error:", error.message);
+                socket.emit("error", { message: error.message });
             }
         });
 
@@ -76,6 +65,13 @@ const initializeSocket = (server) => {
     });
 
     return io;
+};
+
+export const getIO = () => {
+  if (!io) {
+    throw new Error("Socket.io not initialized!");
+  }
+  return io;
 };
 
 export default initializeSocket;

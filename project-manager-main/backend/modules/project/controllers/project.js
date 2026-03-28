@@ -1,126 +1,57 @@
-import Workspace from "../../workspace/models/workspace.js";
-import Project from "../models/project.js";
-import Task from "../../task/models/task.js";
+import projectService from "../services/project.service.js";
+import asyncHandler from "../../../middleware/async-handler.js";
+import { AppError } from "../../../error-handlers/global.error-handler.js";
 
-const createProject = async (req, res) => {
-  try {
-    const { workspaceId } = req.params;
-    const { title, description, status, startDate, dueDate, tags, members } =
-      req.body;
+/**
+ * Handle project creation
+ */
+const createProject = asyncHandler(async (req, res) => {
+  const { workspaceId } = req.params;
+  const project = await projectService.createProject(workspaceId, req.body, req.user._id);
+  res.status(201).json(project);
+});
 
-    const workspace = await Workspace.findById(workspaceId);
+/**
+ * Handle fetching project details
+ */
+const getProjectDetails = asyncHandler(async (req, res) => {
+  const { projectId } = req.params;
+  const project = await projectService.getProjectDetails(projectId, req.user._id);
+  res.status(200).json(project);
+});
 
-    if (!workspace) {
-      return res.status(404).json({
-        message: "Workspace not found",
-      });
-    }
+/**
+ * Handle fetching project tasks
+ */
+const getProjectTasks = asyncHandler(async (req, res) => {
+  const { projectId } = req.params;
+  const data = await projectService.getProjectTasks(projectId, req.user._id);
+  res.status(200).json(data);
+});
 
-    const isMember = workspace.members.some(
-      (member) => member.user.toString() === req.user._id.toString()
-    );
+/**
+ * Handle project attachment upload
+ */
+const addProjectAttachment = asyncHandler(async (req, res) => {
+  const { projectId } = req.params;
+  if (!req.file) throw new AppError("No file uploaded", 400);
+  const project = await projectService.addAttachment(projectId, req.file, req.user._id);
+  res.status(201).json(project);
+});
 
-    if (!isMember) {
-      return res.status(403).json({
-        message: "You are not a member of this workspace",
-      });
-    }
+/**
+ * Handle attachment removal
+ */
+const removeProjectAttachment = asyncHandler(async (req, res) => {
+  const { projectId, attachmentId } = req.params;
+  const project = await projectService.removeAttachment(projectId, attachmentId, req.user._id);
+  res.status(200).json(project);
+});
 
-    const tagArray = tags ? tags.split(",") : [];
-
-    const newProject = await Project.create({
-      title,
-      description,
-      status,
-      startDate,
-      dueDate,
-      tags: tagArray,
-      workspace: workspaceId,
-      members,
-      createdBy: req.user._id,
-    });
-
-    workspace.projects.push(newProject._id);
-    await workspace.save();
-
-    return res.status(201).json(newProject);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Internal server error",
-    });
-  }
+export { 
+  createProject, 
+  getProjectDetails, 
+  getProjectTasks,
+  addProjectAttachment,
+  removeProjectAttachment
 };
-
-const getProjectDetails = async (req, res) => {
-  try {
-    const { projectId } = req.params;
-
-    const project = await Project.findById(projectId);
-
-    if (!project) {
-      return res.status(404).json({
-        message: "Project not found",
-      });
-    }
-
-    const isMember = project.members.some(
-      (member) => member.user.toString() === req.user._id.toString()
-    );
-
-    if (!isMember) {
-      return res.status(403).json({
-        message: "You are not a member of this project",
-      });
-    }
-
-    res.status(200).json(project);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Internal server error",
-    });
-  }
-};
-
-const getProjectTasks = async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const project = await Project.findById(projectId).populate("members.user");
-
-    if (!project) {
-      return res.status(404).json({
-        message: "Project not found",
-      });
-    }
-
-    const isMember = project.members.some(
-      (member) => member.user._id.toString() === req.user._id.toString()
-    );
-
-    if (!isMember) {
-      return res.status(403).json({
-        message: "You are not a member of this project",
-      });
-    }
-
-    const tasks = await Task.find({
-      project: projectId,
-      isArchived: false,
-    })
-      .populate("assignees", "name profilePicture")
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({
-      project,
-      tasks,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Internal server error",
-    });
-  }
-};
-
-export { createProject, getProjectDetails, getProjectTasks };

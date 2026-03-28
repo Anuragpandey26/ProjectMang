@@ -7,7 +7,7 @@ const refreshTokenSchema = new Schema(
       ref: "User",
       required: true,
     },
-    token: {
+    tokenHash: {
       type: String,
       required: true,
       unique: true,
@@ -16,7 +16,7 @@ const refreshTokenSchema = new Schema(
       type: Date,
       required: true,
     },
-    isRevoked: {
+    revoked: {
       type: Boolean,
       default: false,
     },
@@ -32,7 +32,7 @@ const refreshTokenSchema = new Schema(
 refreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 // Index for faster lookups
-refreshTokenSchema.index({ token: 1, isRevoked: 1 });
+refreshTokenSchema.index({ tokenHash: 1, revoked: 1 });
 refreshTokenSchema.index({ userId: 1 });
 
 const RefreshToken = mongoose.model("RefreshToken", refreshTokenSchema);

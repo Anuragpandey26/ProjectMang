@@ -1,4 +1,5 @@
 import authService from "../services/auth.service.js";
+import tokenService from "../../../services/token.service.js";
 
 const registerUser = async (req, res, next) => {
   try {
@@ -14,14 +15,19 @@ const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     
-    // Extract device info
     const deviceInfo = {
       userAgent: req.headers["user-agent"],
       ip: req.ip || req.connection.remoteAddress,
     };
     
     const result = await authService.login(email, password, deviceInfo);
-    res.status(200).json(result);
+    
+    // Set refresh token in HttpOnly cookie
+    res.cookie("refreshToken", result.refreshToken, tokenService.getCookieOptions());
+    
+    // Remove refreshToken from response body for security
+    const { refreshToken, ...responseBody } = result;
+    res.status(200).json(responseBody);
   } catch (error) {
     next(error);
   }
@@ -59,16 +65,25 @@ const verifyResetPasswordTokenAndResetPassword = async (req, res, next) => {
 
 const refreshToken = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
+    // Try to get refresh token from signed cookies first, fallback to body
+    const token = req.signedCookies.refreshToken || req.body.refreshToken;
     
-    // Extract device info
+    if (!token) {
+      return res.status(401).json({ message: "Refresh token missing" });
+    }
+
     const deviceInfo = {
       userAgent: req.headers["user-agent"],
       ip: req.ip || req.connection.remoteAddress,
     };
     
-    const result = await authService.refreshToken(refreshToken, deviceInfo);
-    res.status(200).json(result);
+    const result = await authService.refreshToken(token, deviceInfo);
+    
+    // Set new refresh token in cookie (Rotation)
+    res.cookie("refreshToken", result.refreshToken, tokenService.getCookieOptions());
+    
+    const { refreshToken, ...responseBody } = result;
+    res.status(200).json(responseBody);
   } catch (error) {
     next(error);
   }
@@ -76,9 +91,21 @@ const refreshToken = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
-    const result = await authService.logout(refreshToken);
-    res.status(200).json(result);
+    const token = req.signedCookies.refreshToken || req.body.refreshToken;
+    const accessToken = req.headers.authorization?.split(" ")[1];
+    
+    if (token) {
+      await authService.logout(token);
+    }
+
+    if (accessToken) {
+      await tokenService.blacklistAccessToken(accessToken);
+    }
+    
+    // Clear the cookie
+    res.clearCookie("refreshToken", tokenService.getCookieOptions());
+    
+    res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     next(error);
   }
@@ -86,7 +113,13 @@ const logout = async (req, res, next) => {
 
 const logoutAllDevices = async (req, res, next) => {
   try {
+    const accessToken = req.headers.authorization?.split(" ")[1];
+    if (accessToken) {
+      await tokenService.blacklistAccessToken(accessToken);
+    }
+
     const result = await authService.logoutAllDevices(req.user._id);
+    res.clearCookie("refreshToken", tokenService.getCookieOptions());
     res.status(200).json(result);
   } catch (error) {
     next(error);

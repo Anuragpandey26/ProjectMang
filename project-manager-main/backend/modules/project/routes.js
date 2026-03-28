@@ -7,9 +7,25 @@ import {
     createProject,
     getProjectDetails,
     getProjectTasks,
+    addProjectAttachment,
+    removeProjectAttachment,
 } from "./controllers/project.js";
+import upload from "../../middleware/upload.middleware.js";
 
 const router = express.Router();
+
+router.post(
+    "/:projectId/attachments",
+    authMiddleware,
+    upload.single("file"),
+    addProjectAttachment
+);
+
+router.delete(
+    "/:projectId/attachments/:attachmentId",
+    authMiddleware,
+    removeProjectAttachment
+);
 
 router.post(
     "/:workspaceId/create-project",

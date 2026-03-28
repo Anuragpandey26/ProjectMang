@@ -19,6 +19,7 @@ import {
     getActiveSessions,
 } from "./controllers/auth-controller.js";
 import authMiddleware from "../../middleware/auth-middleware.js";
+import { emailLimiter } from "../../middleware/rate-limiter.middleware.js";
 
 const router = express.Router();
 
@@ -39,6 +40,7 @@ router.post(
 
 router.post(
     "/verify-email",
+    emailLimiter,
     validateRequest({
         body: verifyEmailSchema,
     }),
@@ -47,6 +49,7 @@ router.post(
 
 router.post(
     "/reset-password-request",
+    emailLimiter,
     validateRequest({
         body: emailSchema,
     }),
@@ -55,6 +58,7 @@ router.post(
 
 router.post(
     "/reset-password",
+    emailLimiter,
     validateRequest({
         body: resetPasswordSchema,
     }),

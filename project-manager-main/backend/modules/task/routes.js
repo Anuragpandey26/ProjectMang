@@ -19,10 +19,26 @@ import {
     updateTaskTitle,
     watchTask,
     logTaskTime,
+    addTaskAttachment,
+    removeTaskAttachment,
 } from "./controllers/task.js";
 import authMiddleware from "../../middleware/auth-middleware.js";
+import upload from "../../middleware/upload.middleware.js";
 
 const router = express.Router();
+
+router.post(
+    "/:taskId/attachments",
+    authMiddleware,
+    upload.single("file"),
+    addTaskAttachment
+);
+
+router.delete(
+    "/:taskId/attachments/:attachmentId",
+    authMiddleware,
+    removeTaskAttachment
+);
 
 router.post(
     "/:projectId/create-task",
