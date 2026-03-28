@@ -28,7 +28,7 @@ export function startEmailWorker() {
       const { to, subject, html } = job.data;
 
       console.log(
-        `[EmailWorker] Processing job "${job.name}" (ID: ${job.id}) → ${to}`
+        `[EmailWorker] Processing job "${job.name}" (ID: ${job.id}) -> ${to}`
       );
 
       const success = await resendAdapter.sendEmail(to, subject, html);
@@ -54,7 +54,7 @@ export function startEmailWorker() {
   );
 
   emailWorker.on("completed", (job, result) => {
-    console.log(`[EmailWorker] Job "${job.name}" completed → ${result.to}`);
+    console.log(`[EmailWorker] Job "${job.name}" completed -> ${result.to}`);
   });
 
   emailWorker.on("failed", (job, err) => {

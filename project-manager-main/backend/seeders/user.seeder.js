@@ -4,7 +4,7 @@ import User from "../modules/auth/models/user.js";
 
 export const seedUsers = async () => {
   try {
-    console.log("🌱 Seeding users...");
+    console.log("[Seeder] Seeding users...");
 
     const users = [];
     const password = await bcrypt.hash("Password123!", 10);
@@ -32,10 +32,10 @@ export const seedUsers = async () => {
     });
 
     const createdUsers = await User.insertMany(users);
-    console.log(`✅ Created ${createdUsers.length} users`);
+    console.log(`[Seeder] Created ${createdUsers.length} users`);
     return createdUsers;
   } catch (error) {
-    console.error("❌ Error seeding users:", error.message);
+    console.error("[Seeder] Error seeding users:", error.message);
     throw error;
   }
 };

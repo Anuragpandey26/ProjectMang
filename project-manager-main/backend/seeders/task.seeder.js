@@ -3,7 +3,7 @@ import Task from "../modules/task/models/task.js";
 
 export const seedTasks = async (projects, users) => {
   try {
-    console.log("🌱 Seeding tasks...");
+    console.log("[Seeder] Seeding tasks...");
 
     const tasks = [];
     const statuses = ["To Do", "In Progress", "Done"];
@@ -60,10 +60,10 @@ export const seedTasks = async (projects, users) => {
     }
 
     const createdTasks = await Task.insertMany(tasks);
-    console.log(`✅ Created ${createdTasks.length} tasks`);
+    console.log(`[Seeder] Created ${createdTasks.length} tasks`);
     return createdTasks;
   } catch (error) {
-    console.error("❌ Error seeding tasks:", error.message);
+    console.error("[Seeder] Error seeding tasks:", error.message);
     throw error;
   }
 };

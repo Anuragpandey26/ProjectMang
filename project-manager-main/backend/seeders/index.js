@@ -18,23 +18,23 @@ import ActivityLog from "../modules/task/models/activity.js";
 dotenv.config();
 
 const clearDatabase = async () => {
-  console.log("🗑️  Clearing existing data...");
+  console.log("[Seeder] Clearing existing data...");
   await User.deleteMany({});
   await Workspace.deleteMany({});
   await Project.deleteMany({});
   await Task.deleteMany({});
   await Chat.deleteMany({});
   await ActivityLog.deleteMany({});
-  console.log("✅ Database cleared");
+  console.log("[Seeder] Database cleared");
 };
 
 const seedDatabase = async () => {
   try {
-    console.log("🚀 Starting database seeding...\n");
+    console.log("[Seeder] Starting database seeding...\n");
 
     // Connect to database
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log("✅ Connected to MongoDB\n");
+    console.log("[Seeder] Connected to MongoDB\n");
 
     // Clear existing data
     await clearDatabase();
@@ -59,21 +59,21 @@ const seedDatabase = async () => {
     const activities = await seedActivities(users, tasks, projects, workspaces);
     console.log("");
 
-    console.log("🎉 Database seeding completed successfully!");
-    console.log("\n📊 Summary:");
+    console.log("[Seeder] Database seeding completed successfully!");
+    console.log("\n[Seeder] Summary:");
     console.log(`   - Users: ${users.length}`);
     console.log(`   - Workspaces: ${workspaces.length}`);
     console.log(`   - Projects: ${projects.length}`);
     console.log(`   - Tasks: ${tasks.length}`);
     console.log(`   - Chat Messages: ${chats.length}`);
     console.log(`   - Activity Logs: ${activities.length}`);
-    console.log("\n🔐 Demo Login:");
+    console.log("\n[Seeder] Demo Login:");
     console.log("   Email: admin@catalyst.app");
     console.log("   Password: Password123!");
 
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error seeding database:", error);
+    console.error("[Seeder] Error seeding database:", error);
     process.exit(1);
   }
 };

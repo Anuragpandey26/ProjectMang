@@ -3,7 +3,7 @@ import ActivityLog from "../modules/task/models/activity.js";
 
 export const seedActivities = async (users, tasks, projects, workspaces) => {
   try {
-    console.log("🌱 Seeding activity logs...");
+    console.log("[Seeder] Seeding activity logs...");
 
     const activities = [];
     // Valid enum values from ActivityLog model
@@ -66,10 +66,10 @@ export const seedActivities = async (users, tasks, projects, workspaces) => {
     }
 
     const createdActivities = await ActivityLog.insertMany(activities);
-    console.log(`✅ Created ${createdActivities.length} activity logs`);
+    console.log(`[Seeder] Created ${createdActivities.length} activity logs`);
     return createdActivities;
   } catch (error) {
-    console.error("❌ Error seeding activity logs:", error.message);
+    console.error("[Seeder] Error seeding activity logs:", error.message);
     throw error;
   }
 };

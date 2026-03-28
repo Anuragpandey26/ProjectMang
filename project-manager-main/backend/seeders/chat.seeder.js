@@ -3,7 +3,7 @@ import Chat from "../modules/chat/models/chat.js";
 
 export const seedChats = async (projects, workspaces, users) => {
   try {
-    console.log("🌱 Seeding chat messages...");
+    console.log("[Seeder] Seeding chat messages...");
 
     const messages = [];
 
@@ -38,10 +38,10 @@ export const seedChats = async (projects, workspaces, users) => {
     }
 
     const createdMessages = await Chat.insertMany(messages);
-    console.log(`✅ Created ${createdMessages.length} chat messages`);
+    console.log(`[Seeder] Created ${createdMessages.length} chat messages`);
     return createdMessages;
   } catch (error) {
-    console.error("❌ Error seeding chat messages:", error.message);
+    console.error("[Seeder] Error seeding chat messages:", error.message);
     throw error;
   }
 };

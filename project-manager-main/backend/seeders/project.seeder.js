@@ -3,7 +3,7 @@ import Project from "../modules/project/models/project.js";
 
 export const seedProjects = async (workspaces, users) => {
   try {
-    console.log("🌱 Seeding projects...");
+    console.log("[Seeder] Seeding projects...");
 
     const projects = [];
     const statuses = ["Planning", "In Progress", "On Hold", "Completed", "Cancelled"];
@@ -53,10 +53,10 @@ export const seedProjects = async (workspaces, users) => {
     }
 
     const createdProjects = await Project.insertMany(projects);
-    console.log(`✅ Created ${createdProjects.length} projects`);
+    console.log(`[Seeder] Created ${createdProjects.length} projects`);
     return createdProjects;
   } catch (error) {
-    console.error("❌ Error seeding projects:", error.message);
+    console.error("[Seeder] Error seeding projects:", error.message);
     throw error;
   }
 };

@@ -3,7 +3,7 @@ import Workspace from "../modules/workspace/models/workspace.js";
 
 export const seedWorkspaces = async (users) => {
   try {
-    console.log("🌱 Seeding workspaces...");
+    console.log("[Seeder] Seeding workspaces...");
 
     const workspaces = [];
     const colors = [
@@ -52,10 +52,10 @@ export const seedWorkspaces = async (users) => {
     }
 
     const createdWorkspaces = await Workspace.insertMany(workspaces);
-    console.log(`✅ Created ${createdWorkspaces.length} workspaces`);
+    console.log(`[Seeder] Created ${createdWorkspaces.length} workspaces`);
     return createdWorkspaces;
   } catch (error) {
-    console.error("❌ Error seeding workspaces:", error.message);
+    console.error("[Seeder] Error seeding workspaces:", error.message);
     throw error;
   }
 };
