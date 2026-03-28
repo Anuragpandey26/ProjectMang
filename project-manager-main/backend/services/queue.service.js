@@ -1,5 +1,6 @@
 import { Queue } from "bullmq";
 import redisService from "./redis.service.js";
+import logger from "./logger.service.js";
 
 /**
  * QueueService - Centralized BullMQ Queue Manager
@@ -39,7 +40,7 @@ class QueueService {
   init() {
     const connection = redisService.getClient();
     if (!connection) {
-      console.warn("[QueueService] BullMQ queues skipped (Redis not available).");
+      logger.warn("[QueueService] BullMQ queues skipped (Redis not available).");
       this.enabled = false;
       return;
     }
@@ -48,7 +49,7 @@ class QueueService {
     this._registerQueue("maintenance", connection);
 
     this.enabled = true;
-    console.log("[QueueService] BullMQ queues initialized:", [...queues.keys()].join(", "));
+    logger.info(`[QueueService] BullMQ queues initialized: ${[...queues.keys()].join(", ")}`);
   }
 
   /**
@@ -71,7 +72,7 @@ class QueueService {
 
     // Handle queue errors gracefully (don't crash)
     queue.on("error", (err) => {
-      console.error(`[QueueService] Queue "${name}" error:`, err.message);
+      logger.error(`[QueueService] Queue "${name}" error: ${err.message}`);
     });
 
     queues.set(name, queue);
@@ -85,12 +86,12 @@ class QueueService {
 
     const queue = queues.get(queueName);
     if (!queue) {
-      console.warn(`[QueueService] Queue "${queueName}" not found.`);
+      logger.warn(`[QueueService] Queue "${queueName}" not found.`);
       return null;
     }
 
     const job = await queue.add(jobName, data, opts);
-    console.log(
+    logger.info(
       `[QueueService] Job "${jobName}" added to "${queueName}" queue (ID: ${job.id})`
     );
     return job;
@@ -104,7 +105,7 @@ class QueueService {
 
     const queue = queues.get(queueName);
     if (!queue) {
-      console.warn(`[QueueService] Queue "${queueName}" not found.`);
+      logger.warn(`[QueueService] Queue "${queueName}" not found.`);
       return null;
     }
 
@@ -113,7 +114,7 @@ class QueueService {
       ...DEFAULT_JOB_OPTIONS,
     });
 
-    console.log(
+    logger.info(
       `[QueueService] Repeatable job "${jobName}" scheduled on "${queueName}" queue`
     );
     return job;
@@ -132,7 +133,7 @@ class QueueService {
   async closeAll() {
     for (const [name, queue] of queues) {
       await queue.close();
-      console.log(`[QueueService] Queue "${name}" closed.`);
+      logger.info(`[QueueService] Queue "${name}" closed.`);
     }
     queues.clear();
     this.enabled = false;

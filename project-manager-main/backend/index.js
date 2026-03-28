@@ -12,6 +12,7 @@ import { globalErrorHandler } from "./error-handlers/global.error-handler.js";
 import { globalLimiter } from "./middleware/rate-limiter.middleware.js";
 import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
+import logger from "./services/logger.service.js";
 
 // Redis, Queue & Worker imports
 import redisService from "./services/redis.service.js";
@@ -53,14 +54,14 @@ async function bootstrap() {
     // 5. Initialize WebSocket
     initializeSocket(server);
 
-    console.log("----------------------------------------------------");
-    console.log("  All services initialized successfully");
+    logger.info("----------------------------------------------------");
+    logger.info("  All services initialized successfully");
     if (!redisAvailable) {
-      console.log("  [WARN] Running without Redis (using fallbacks)");
+      logger.warn("  [WARN] Running without Redis (using fallbacks)");
     }
-    console.log("----------------------------------------------------");
+    logger.info("----------------------------------------------------");
   } catch (error) {
-    console.error("[FATAL] Failed to initialize services:", error);
+    logger.error("[FATAL] Failed to initialize services:", error);
     process.exit(1);
   }
 }
@@ -76,7 +77,11 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-app.use(morgan("dev"));
+
+// Setup Morgan to stream to Winston
+const morganFormat = process.env.NODE_ENV === "production" ? "combined" : "dev";
+app.use(morgan(morganFormat, { stream: logger.stream }));
+
 app.use(express.json());
 // Data Sanitization against NoSQL Query Injection
 app.use(mongoSanitize());
@@ -121,7 +126,7 @@ app.use((req, res) => {
 // ─── Graceful Shutdown ──────────────────────────────────────────────────
 
 async function gracefulShutdown(signal) {
-  console.log(`\n[${signal}] Shutting down gracefully...`);
+  logger.info(`\n[${signal}] Shutting down gracefully...`);
 
   server.close(async () => {
     try {
@@ -129,16 +134,16 @@ async function gracefulShutdown(signal) {
         await queueService.closeAll();
       }
       await redisService.disconnect();
-      console.log("[Shutdown] All connections closed. Goodbye!");
+      logger.info("[Shutdown] All connections closed. Goodbye!");
       process.exit(0);
     } catch (error) {
-      console.error("Error during shutdown:", error);
+      logger.error("Error during shutdown:", error);
       process.exit(1);
     }
   });
 
   setTimeout(() => {
-    console.error("[WARN] Forced shutdown after timeout.");
+    logger.error("[WARN] Forced shutdown after timeout.");
     process.exit(1);
   }, 10000);
 }
@@ -149,7 +154,7 @@ process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 // ─── Start Server ───────────────────────────────────────────────────────
 
 server.listen(PORT, () => {
-  console.log(`[Server] Catalyst API running on port ${PORT}`);
-  console.log(`[Server] Health check: http://localhost:${PORT}/api-v1/health`);
-  console.log(`[Server] API docs: http://localhost:${PORT}/`);
+  logger.info(`[Server] Catalyst API running on port ${PORT}`);
+  logger.info(`[Server] Health check: http://localhost:${PORT}/api-v1/health`);
+  logger.info(`[Server] API docs: http://localhost:${PORT}/`);
 });

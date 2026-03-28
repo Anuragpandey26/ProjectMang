@@ -2,6 +2,7 @@ import cron from "node-cron";
 import queueService from "./queue.service.js";
 import tokenService from "./token.service.js";
 import workspaceService from "../modules/workspace/services/workspace.service.js";
+import logger from "./logger.service.js";
 
 /**
  * CronService - Schedules background maintenance tasks
@@ -27,7 +28,7 @@ class CronService {
    * @private
    */
   async _initBullMQ() {
-    console.log("[CronService] Scheduling maintenance jobs via BullMQ...");
+    logger.info("[CronService] Scheduling maintenance jobs via BullMQ...");
 
     await queueService.addRepeatableJob(
       "maintenance",
@@ -43,7 +44,7 @@ class CronService {
       { pattern: "0 * * * *" }
     );
 
-    console.log("[CronService] BullMQ repeatable jobs scheduled.");
+    logger.info("[CronService] BullMQ repeatable jobs scheduled.");
   }
 
   /**
@@ -51,33 +52,33 @@ class CronService {
    * @private
    */
   _initNodeCron() {
-    console.log("[CronService] Scheduling maintenance jobs via node-cron (fallback)...");
+    logger.info("[CronService] Scheduling maintenance jobs via node-cron (fallback)...");
 
     // Token Cleanup: Every midnight
     cron.schedule("0 0 * * *", async () => {
       try {
-        console.log("[Cron] Starting security token cleanup...");
+        logger.info("[Cron] Starting security token cleanup...");
         const deletedCount = await tokenService.cleanupExpiredTokens();
-        console.log(`[Cron] Removed ${deletedCount} expired/revoked tokens.`);
+        logger.info(`[Cron] Removed ${deletedCount} expired/revoked tokens.`);
       } catch (error) {
-        console.error("[Cron] Token cleanup error:", error);
+        logger.error("[Cron] Token cleanup error:", error);
       }
     });
 
     // Invitation Cleanup: Every hour
     cron.schedule("0 * * * *", async () => {
       try {
-        console.log("[Cron] Checking for stale invitations...");
+        logger.info("[Cron] Checking for stale invitations...");
         const deletedCount = await workspaceService.cleanupOldInvitations();
         if (deletedCount > 0) {
-          console.log(`[Cron] Purged ${deletedCount} stale invitations.`);
+          logger.info(`[Cron] Purged ${deletedCount} stale invitations.`);
         }
       } catch (error) {
-        console.error("[Cron] Invitation cleanup error:", error);
+        logger.error("[Cron] Invitation cleanup error:", error);
       }
     });
 
-    console.log("[CronService] node-cron jobs scheduled (fallback mode).");
+    logger.info("[CronService] node-cron jobs scheduled (fallback mode).");
   }
 }
 

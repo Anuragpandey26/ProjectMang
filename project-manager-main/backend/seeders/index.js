@@ -6,6 +6,7 @@ import { seedProjects } from "./project.seeder.js";
 import { seedTasks } from "./task.seeder.js";
 import { seedChats } from "./chat.seeder.js";
 import { seedActivities } from "./activity.seeder.js";
+import logger from "../services/logger.service.js";
 
 // Models
 import User from "../modules/auth/models/user.js";
@@ -18,27 +19,27 @@ import ActivityLog from "../modules/task/models/activity.js";
 dotenv.config();
 
 const clearDatabase = async () => {
-  console.log("[Seeder] Clearing existing data...");
+  logger.info("[Seeder] Clearing existing data...");
   await User.deleteMany({});
   await Workspace.deleteMany({});
   await Project.deleteMany({});
   await Task.deleteMany({});
   await Chat.deleteMany({});
   await ActivityLog.deleteMany({});
-  console.log("[Seeder] Database cleared");
+  logger.info("[Seeder] Database cleared");
 };
 
 const seedDatabase = async () => {
   try {
-    console.log("[Seeder] Starting database seeding...\n");
+    logger.info("[Seeder] Starting database seeding...\n");
 
     // Connect to database
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log("[Seeder] Connected to MongoDB\n");
+    logger.info("[Seeder] Connected to MongoDB\n");
 
     // Clear existing data
     await clearDatabase();
-    console.log("");
+    logger.info("");
 
     // Seed in order (respecting dependencies)
     const users = await seedUsers();
@@ -57,23 +58,23 @@ const seedDatabase = async () => {
     console.log("");
 
     const activities = await seedActivities(users, tasks, projects, workspaces);
-    console.log("");
+    logger.info("");
 
-    console.log("[Seeder] Database seeding completed successfully!");
-    console.log("\n[Seeder] Summary:");
-    console.log(`   - Users: ${users.length}`);
-    console.log(`   - Workspaces: ${workspaces.length}`);
-    console.log(`   - Projects: ${projects.length}`);
-    console.log(`   - Tasks: ${tasks.length}`);
-    console.log(`   - Chat Messages: ${chats.length}`);
-    console.log(`   - Activity Logs: ${activities.length}`);
-    console.log("\n[Seeder] Demo Login:");
-    console.log("   Email: admin@catalyst.app");
-    console.log("   Password: Password123!");
+    logger.info("[Seeder] Database seeding completed successfully!");
+    logger.info("\n[Seeder] Summary:");
+    logger.info(`   - Users: ${users.length}`);
+    logger.info(`   - Workspaces: ${workspaces.length}`);
+    logger.info(`   - Projects: ${projects.length}`);
+    logger.info(`   - Tasks: ${tasks.length}`);
+    logger.info(`   - Chat Messages: ${chats.length}`);
+    logger.info(`   - Activity Logs: ${activities.length}`);
+    logger.info("\n[Seeder] Demo Login:");
+    logger.info("   Email: admin@catalyst.app");
+    logger.info("   Password: Password123!");
 
     process.exit(0);
   } catch (error) {
-    console.error("[Seeder] Error seeding database:", error);
+    logger.error("[Seeder] Error seeding database:", error);
     process.exit(1);
   }
 };

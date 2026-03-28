@@ -1,6 +1,7 @@
 import { Worker } from "bullmq";
 import redisService from "../services/redis.service.js";
 import resendAdapter from "../adapters/email/resend.adapter.js";
+import logger from "../services/logger.service.js";
 
 /**
  * Email Worker - Processes jobs from the "email" queue.
@@ -18,7 +19,7 @@ let emailWorker = null;
 export function startEmailWorker() {
   const connection = redisService.createDuplicateConnection();
   if (!connection) {
-    console.warn("[EmailWorker] Skipped (Redis not available).");
+    logger.warn("[EmailWorker] Skipped (Redis not available).");
     return null;
   }
 
@@ -27,7 +28,7 @@ export function startEmailWorker() {
     async (job) => {
       const { to, subject, html } = job.data;
 
-      console.log(
+      logger.info(
         `[EmailWorker] Processing job "${job.name}" (ID: ${job.id}) -> ${to}`
       );
 
@@ -37,7 +38,7 @@ export function startEmailWorker() {
         throw new Error(`Failed to send email to ${to}`);
       }
 
-      console.log(
+      logger.info(
         `[EmailWorker] Job "${job.name}" (ID: ${job.id}) completed.`
       );
 
@@ -54,13 +55,12 @@ export function startEmailWorker() {
   );
 
   emailWorker.on("completed", (job, result) => {
-    console.log(`[EmailWorker] Job "${job.name}" completed -> ${result.to}`);
+    logger.info(`[EmailWorker] Job "${job.name}" completed -> ${result.to}`);
   });
 
   emailWorker.on("failed", (job, err) => {
-    console.error(
-      `[EmailWorker] Job "${job?.name}" (ID: ${job?.id}) failed after ${job?.attemptsMade} attempts:`,
-      err.message
+    logger.error(
+      `[EmailWorker] Job "${job?.name}" (ID: ${job?.id}) failed after ${job?.attemptsMade} attempts: ${err.message}`
     );
   });
 
@@ -71,7 +71,7 @@ export function startEmailWorker() {
     }
   });
 
-  console.log("[EmailWorker] Started and listening for jobs.");
+  logger.info("[EmailWorker] Started and listening for jobs.");
   return emailWorker;
 }
 
@@ -79,6 +79,6 @@ export async function stopEmailWorker() {
   if (emailWorker) {
     await emailWorker.close();
     emailWorker = null;
-    console.log("[EmailWorker] Worker stopped.");
+    logger.info("[EmailWorker] Worker stopped.");
   }
 }

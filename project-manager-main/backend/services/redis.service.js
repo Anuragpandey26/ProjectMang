@@ -1,5 +1,6 @@
 import Redis from "ioredis";
 import dotenv from "dotenv";
+import logger from "./logger.service.js";
 
 dotenv.config();
 
@@ -77,7 +78,7 @@ class RedisService {
         .then(() => {
           clearTimeout(timeout);
           this.isConnected = true;
-          console.log("[Redis] Connected successfully.");
+          logger.info("[Redis] Connected successfully.");
           resolve(true);
         })
         .catch(() => {
@@ -85,7 +86,7 @@ class RedisService {
           this.isConnected = false;
           this.client.disconnect(false);
           this.client = null;
-          console.warn("[Redis] Not available — running without it (using fallbacks).");
+          logger.warn("[Redis] Not available - running without it (using fallbacks).");
           resolve(false);
         });
     });
@@ -206,7 +207,7 @@ class RedisService {
       }
       this.client = null;
       this.isConnected = false;
-      console.log("[Redis] Disconnected gracefully.");
+      logger.info("[Redis] Disconnected gracefully.");
     }
   }
 }

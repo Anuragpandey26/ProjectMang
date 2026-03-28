@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
+import logger from "../../services/logger.service.js";
 
 dotenv.config();
 
@@ -32,7 +33,7 @@ class CloudinaryAdapter {
         },
         (error, result) => {
           if (error) {
-            console.error("Cloudinary upload error:", error);
+            logger.error(`Cloudinary upload error: ${error.message}`, { error });
             return reject(new Error("Failed to upload file to Cloudinary"));
           }
           resolve({
@@ -58,7 +59,7 @@ class CloudinaryAdapter {
       const result = await cloudinary.uploader.destroy(publicId);
       return result.result === "ok";
     } catch (error) {
-      console.error("Cloudinary deletion error:", error);
+      logger.error(`Cloudinary deletion error: ${error.message}`, { error });
       return false;
     }
   }

@@ -1,12 +1,13 @@
 import { Resend } from "resend";
 import dotenv from "dotenv";
+import logger from "../../services/logger.service.js";
 
 dotenv.config();
 
 class ResendAdapter {
     constructor() {
         if (!process.env.RESEND_API_KEY) {
-            console.warn("RESEND_API_KEY is not set");
+            logger.warn("RESEND_API_KEY is not set");
         }
         this.resend = new Resend(process.env.RESEND_API_KEY);
         this.fromEmail = process.env.FROM_EMAIL || "Catalyst <onboarding@resend.dev>";
@@ -29,30 +30,30 @@ class ResendAdapter {
             });
 
             if (error) {
-                console.error("Error sending email via Resend:", error);
+                logger.error("Error sending email via Resend:", { error });
                 
                 if (process.env.NODE_ENV === "development") {
-                    console.log("\x1b[33m%s\x1b[0m", "--- [DEVELOPMENT MODE] Email Output ---");
-                    console.log(`To: ${to}`);
-                    console.log(`Subject: ${subject}`);
-                    console.log(`Content: ${html}`);
-                    console.log("\x1b[33m%s\x1b[0m", "---------------------------------------");
+                    logger.info("--- [DEVELOPMENT MODE] Email Output ---");
+                    logger.info(`To: ${to}`);
+                    logger.info(`Subject: ${subject}`);
+                    logger.info(`Content: ${html}`);
+                    logger.info("---------------------------------------");
                     return true; // Return true in dev to prevent blocking the flow
                 }
                 return false;
             }
 
-            console.log("Email sent successfully via Resend:", data.id);
+            logger.info(`Email sent successfully via Resend: ${data.id}`);
             return true;
         } catch (error) {
-            console.error("Unexpected error sending email via Resend:", error);
+            logger.error(`Unexpected error sending email via Resend: ${error.message}`, { error });
             
             if (process.env.NODE_ENV === "development") {
-                console.log("\x1b[33m%s\x1b[0m", "--- [DEVELOPMENT MODE] Email Fallback (Error) ---");
-                console.log(`To: ${to}`);
-                console.log(`Subject: ${subject}`);
-                console.log(`Content: ${html}`);
-                console.log("\x1b[33m%s\x1b[0m", "-------------------------------------------------");
+                logger.info("--- [DEVELOPMENT MODE] Email Fallback (Error) ---");
+                logger.info(`To: ${to}`);
+                logger.info(`Subject: ${subject}`);
+                logger.info(`Content: ${html}`);
+                logger.info("-------------------------------------------------");
                 return true; // Return true in dev to prevent blocking the flow
             }
             return false;
